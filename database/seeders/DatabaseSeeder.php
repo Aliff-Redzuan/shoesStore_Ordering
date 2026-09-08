@@ -17,9 +17,43 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        User::updateOrCreate(
+            ['email' => 'customer@viola.com'],
+            [
+                'name' => 'Customer User',
+                'password' => \Illuminate\Support\Facades\Hash::make('customer123'),
+                'role' => 'customer',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'test@example.com'],
+            [
+                'name' => 'Test User',
+                'password' => \Illuminate\Support\Facades\Hash::make('password'),
+                'role' => 'customer',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'admin@viola.com'],
+            [
+                'name' => 'Admin User',
+                'password' => \Illuminate\Support\Facades\Hash::make('admin123'),
+                'role' => 'admin',
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'staff@viola.com'],
+            [
+                'name' => 'Staff User',
+                'password' => \Illuminate\Support\Facades\Hash::make('staff123'),
+                'role' => 'staff',
+            ]
+        );
+
+        // Seed products
+        $this->call(ProductSeeder::class);
     }
 }
