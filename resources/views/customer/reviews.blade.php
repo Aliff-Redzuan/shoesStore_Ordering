@@ -63,6 +63,27 @@
                     </svg>
                     Account Settings
                 </a>
+                            <!-- Shop New Shoes -->
+            <a
+                href="{{ route('customer.shop') }}"
+                class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-gray-600 rounded-lg hover:bg-pink-50/50 hover:text-brand-magenta transition-all"
+            >
+                <svg
+                    class="w-5 h-5 text-gray-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M3 3h18v6H3V3zm0 8h18v10H3V11zm4 2v6m6-6v6"
+                    />
+                </svg>
+
+                Shop New Shoes
+            </a>
             </nav>
         </div>
     </aside>

@@ -68,50 +68,40 @@ Route::put('/customer/settings', [CustomerController::class, 'updateSettings'])
 
 Route::prefix('customer')->name('customer.')->group(function () {
 
-    // Orders
-    Route::get('/orders', [CustomerController::class, 'orders'])
-        ->name('orders.index');
-
-    Route::get('/orders/{id}', [CustomerController::class, 'showOrder'])
-        ->name('orders.show');
-
-    Route::get('/orders/{id}/track', [CustomerController::class, 'trackOrder'])
-        ->name('orders.track');
+    Route::get(
+        '/orders',
+        [CustomerController::class, 'orders']
+    )->name('orders.index');
 
 
-    // Reviews
-    Route::get('/reviews', [CustomerController::class, 'reviews'])
-        ->name('reviews.index');
-
-    Route::post('/reviews', [CustomerController::class, 'storeReview'])
-        ->name('reviews.store');
-
-    Route::delete('/reviews/{id}', [CustomerController::class, 'destroyReview'])
-        ->name('reviews.destroy');
+    Route::get(
+        '/orders/{id}',
+        [CustomerController::class, 'showOrder']
+    )->name('orders.show');
 
 
-    // Cart
-    Route::get('/cart', [CustomerController::class, 'viewCart'])
-        ->name('cart.index');
-
-    Route::post('/cart/add', [CustomerController::class, 'addToCart'])
-        ->name('cart.add');
-
-    Route::delete('/cart/{key}', [CustomerController::class, 'removeFromCart'])
-        ->name('cart.remove');
+    Route::get(
+        '/orders/{id}/track',
+        [CustomerController::class, 'trackOrder']
+    )->name('orders.track');
 
 
-    // Checkout
-    Route::get('/checkout', [CustomerController::class, 'showCheckout'])
-        ->name('checkout.show');
-
-    Route::post('/checkout', [CustomerController::class, 'processCheckout'])
-        ->name('checkout.process');
+    Route::get(
+        '/reviews',
+        [CustomerController::class, 'reviews']
+    )->name('reviews.index');
 
 
-    // Order confirmation
-    Route::get('/order/{orderId}/confirmation', [CustomerController::class, 'orderConfirmation'])
-        ->name('order.confirmation');
+    Route::post(
+        '/reviews',
+        [CustomerController::class, 'storeReview']
+    )->name('reviews.store');
+
+
+    Route::delete(
+        '/reviews/{id}',
+        [CustomerController::class, 'destroyReview']
+    )->name('reviews.destroy');
 
 });
 

@@ -528,13 +528,36 @@
                         ? $product['price']
                         : $product->price;
 
-                    $productSizes = is_array($product)
-                        ? ($product['sizes'] ?? [6, 7, 8, 9, 10, 11, 12, 13])
-                        : (
-                            is_string($product->sizes)
-                                ? json_decode($product->sizes, true)
-                                : $product->sizes
-                        );
+                    // Normalize product sizes so Blade always receives an array.
+                    // A value like "35" is valid data for one size, but json_decode("35", true)
+                    // returns the integer 35, which cannot be used in @forelse/@foreach.
+                    $rawProductSizes = is_array($product)
+                        ? ($product['sizes'] ?? null)
+                        : ($product->sizes ?? null);
+
+                    if (is_array($rawProductSizes)) {
+                        $productSizes = $rawProductSizes;
+                    } elseif (is_null($rawProductSizes) || $rawProductSizes === '') {
+                        $productSizes = [6, 7, 8, 9, 10, 11, 12, 13];
+                    } elseif (is_string($rawProductSizes)) {
+                        $decodedSizes = json_decode($rawProductSizes, true);
+
+                        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedSizes)) {
+                            $productSizes = $decodedSizes;
+                        } elseif (json_last_error() === JSON_ERROR_NONE && is_scalar($decodedSizes)) {
+                            $productSizes = [$decodedSizes];
+                        } else {
+                            // Support plain text such as "35, 36, 37" or a single size "35".
+                            $productSizes = array_values(array_filter(
+                                array_map('trim', explode(',', $rawProductSizes)),
+                                static fn ($size) => $size !== ''
+                            ));
+                        }
+                    } elseif (is_scalar($rawProductSizes)) {
+                        $productSizes = [$rawProductSizes];
+                    } else {
+                        $productSizes = [];
+                    }
 
                 @endphp
 
