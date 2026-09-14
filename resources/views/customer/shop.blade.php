@@ -528,6 +528,10 @@
                         ? $product['price']
                         : $product->price;
 
+                    $productImage = is_array($product)
+                        ? ($product['image'] ?? null)
+                        : ($product->image ?? null);
+
                     // Normalize product sizes so Blade always receives an array.
                     // A value like "35" is valid data for one size, but json_decode("35", true)
                     // returns the integer 35, which cannot be used in @forelse/@foreach.
@@ -610,21 +614,49 @@
                             </span>
 
 
-                            <!-- Placeholder -->
-                            <div class="w-16 h-16
-                                        rounded-full
-                                        bg-brand-magenta/10
-                                        text-brand-magenta
-                                        flex items-center
-                                        justify-center
-                                        text-3xl
-                                        font-bold
-                                        group-hover:scale-110
-                                        transition-transform">
+                            @if($productImage)
 
-                                {{ substr($productName, 0, 1) }}
+                                <img src="{{ asset('storage/' . ltrim($productImage, '/')) }}"
+                                     alt="{{ $productName }}"
+                                     class="w-full h-full object-contain p-3 group-hover:scale-105 transition-transform"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
 
-                            </div>
+                                <!-- Placeholder fallback if image cannot be loaded -->
+                                <div class="w-16 h-16
+                                            rounded-full
+                                            bg-brand-magenta/10
+                                            text-brand-magenta
+                                            items-center
+                                            justify-center
+                                            text-3xl
+                                            font-bold
+                                            group-hover:scale-110
+                                            transition-transform"
+                                     style="display: none;">
+
+                                    {{ strtoupper(substr($productName, 0, 1)) }}
+
+                                </div>
+
+                            @else
+
+                                <!-- Placeholder when no product image is available -->
+                                <div class="w-16 h-16
+                                            rounded-full
+                                            bg-brand-magenta/10
+                                            text-brand-magenta
+                                            flex items-center
+                                            justify-center
+                                            text-3xl
+                                            font-bold
+                                            group-hover:scale-110
+                                            transition-transform">
+
+                                    {{ strtoupper(substr($productName, 0, 1)) }}
+
+                                </div>
+
+                            @endif
 
                         </div>
 

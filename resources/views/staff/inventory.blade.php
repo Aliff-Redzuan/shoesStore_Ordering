@@ -586,9 +586,19 @@
 
                                     <div class="flex items-center gap-3">
 
-                                        <div class="w-10 h-10 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center font-bold text-xs text-brand-magenta">
+                                        <div class="w-12 h-12 rounded-lg bg-gray-100 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
 
-                                            {{ $initials }}
+                                            @if(!empty($product['image']))
+                                                <img
+                                                    src="{{ asset('storage/' . $product['image']) }}"
+                                                    alt="{{ $productName }}"
+                                                    class="w-full h-full object-cover"
+                                                >
+                                            @else
+                                                <span class="font-bold text-xs text-brand-magenta">
+                                                    {{ $initials }}
+                                                </span>
+                                            @endif
 
                                         </div>
 
@@ -696,7 +706,8 @@
                                             {{ $product['id'] }},
                                             @js($productName),
                                             {{ (int) $product['stock'] }},
-                                            {{ (float) $product['price'] }}
+                                            {{ (float) $product['price'] }},
+                                            @js($product['image'] ?? '')
                                         )"
                                         class="text-xs font-bold text-brand-magenta hover:underline"
                                     >
@@ -805,6 +816,7 @@
             <form
                 action="{{ route('staff.inventory.store') }}"
                 method="POST"
+                enctype="multipart/form-data"
                 class="p-6 space-y-4"
             >
 
@@ -1009,6 +1021,42 @@
                 </div>
 
 
+                <!-- Product Image -->
+
+                <div>
+
+                    <label
+                        for="add_image"
+                        class="block text-sm font-semibold text-gray-700 mb-1"
+                    >
+                        Product Image
+                    </label>
+
+                    <input
+                        type="file"
+                        id="add_image"
+                        name="image"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        required
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-magenta outline-none"
+                    >
+
+                    <p class="text-[11px] text-gray-400 mt-1">
+                        Upload a JPG, PNG, or WEBP image. Maximum size: 2 MB.
+                    </p>
+
+                    <div class="mt-3 hidden" id="imagePreviewContainer">
+                        <img
+                            id="imagePreview"
+                            src=""
+                            alt="Product image preview"
+                            class="w-32 h-32 rounded-lg border border-gray-200 object-cover"
+                        >
+                    </div>
+
+                </div>
+
+
                 <!-- Buttons -->
 
                 <div class="flex gap-2 pt-4 border-t border-gray-200">
@@ -1086,6 +1134,7 @@
                 id="editStockForm"
                 method="POST"
                 action=""
+                enctype="multipart/form-data"
                 class="p-6 space-y-4"
             >
 
@@ -1137,6 +1186,44 @@
                         required
                         class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-magenta outline-none"
                     >
+
+                </div>
+
+
+                <!-- Product Image -->
+
+                <div>
+
+                    <label
+                        for="modalImageInput"
+                        class="block text-sm font-semibold text-gray-700 mb-1"
+                    >
+                        Product Image
+                    </label>
+
+                    <input
+                        type="file"
+                        id="modalImageInput"
+                        name="image"
+                        accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-magenta outline-none"
+                    >
+
+                    <p class="text-[11px] text-gray-400 mt-1">
+                        Upload a JPG, PNG, or WEBP image. Maximum size: 2 MB. Leave empty to keep the current image.
+                    </p>
+
+                    <div
+                        id="editImagePreviewContainer"
+                        class="mt-3 hidden"
+                    >
+                        <img
+                            id="editImagePreview"
+                            src=""
+                            alt="Product image preview"
+                            class="w-32 h-32 rounded-lg border border-gray-200 object-cover"
+                        >
+                    </div>
 
                 </div>
 
@@ -1219,6 +1306,75 @@
 
         /*
         |--------------------------------------------------------------------------
+        | Product Image Preview
+        |--------------------------------------------------------------------------
+        */
+
+        const imageInput =
+            document.getElementById('add_image');
+
+        const imagePreviewContainer =
+            document.getElementById('imagePreviewContainer');
+
+        const imagePreview =
+            document.getElementById('imagePreview');
+
+        if (imageInput) {
+            imageInput.addEventListener(
+                'change',
+                function (event) {
+                    const file =
+                        event.target.files[0];
+
+                    if (!file) {
+                        imagePreviewContainer.classList.add('hidden');
+                        imagePreview.src = '';
+                        return;
+                    }
+
+                    const allowedTypes = [
+                        'image/jpeg',
+                        'image/png',
+                        'image/webp'
+                    ];
+
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Please select a JPG, PNG, or WEBP image.');
+                        event.target.value = '';
+                        imagePreviewContainer.classList.add('hidden');
+                        imagePreview.src = '';
+                        return;
+                    }
+
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('Image size must not exceed 2 MB.');
+                        event.target.value = '';
+                        imagePreviewContainer.classList.add('hidden');
+                        imagePreview.src = '';
+                        return;
+                    }
+
+                    const reader =
+                        new FileReader();
+
+                    reader.onload =
+                        function (e) {
+                            imagePreview.src =
+                                e.target.result;
+
+                            imagePreviewContainer.classList.remove(
+                                'hidden'
+                            );
+                        };
+
+                    reader.readAsDataURL(file);
+                }
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
         | Edit Product Modal
         |--------------------------------------------------------------------------
         */
@@ -1227,7 +1383,8 @@
             productId,
             productName,
             currentStock,
-            currentPrice
+            currentPrice,
+            currentImage
         )
         {
             const modal =
@@ -1268,6 +1425,30 @@
                 currentPrice;
 
 
+            const editImageInput =
+                document.getElementById('modalImageInput');
+
+            const editImagePreviewContainer =
+                document.getElementById('editImagePreviewContainer');
+
+            const editImagePreview =
+                document.getElementById('editImagePreview');
+
+            if (editImageInput) {
+                editImageInput.value = '';
+            }
+
+            if (currentImage) {
+                editImagePreview.src =
+                    "{{ asset('storage') }}/" + currentImage;
+
+                editImagePreviewContainer.classList.remove('hidden');
+            } else {
+                editImagePreview.src = '';
+                editImagePreviewContainer.classList.add('hidden');
+            }
+
+
             /*
              * PUT /staff/inventory/{id}/stock
              */
@@ -1302,6 +1483,67 @@
 
             modal.classList.remove(
                 'flex'
+            );
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Edit Product Image Preview
+        |--------------------------------------------------------------------------
+        */
+
+        const editImageInputElement =
+            document.getElementById('modalImageInput');
+
+        const editImagePreviewContainerElement =
+            document.getElementById('editImagePreviewContainer');
+
+        const editImagePreviewElement =
+            document.getElementById('editImagePreview');
+
+        if (editImageInputElement) {
+            editImageInputElement.addEventListener(
+                'change',
+                function (event) {
+                    const file =
+                        event.target.files[0];
+
+                    if (!file) {
+                        return;
+                    }
+
+                    const allowedTypes = [
+                        'image/jpeg',
+                        'image/png',
+                        'image/webp'
+                    ];
+
+                    if (!allowedTypes.includes(file.type)) {
+                        alert('Please select a JPG, PNG, or WEBP image.');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('Image size must not exceed 2 MB.');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    const reader =
+                        new FileReader();
+
+                    reader.onload =
+                        function (e) {
+                            editImagePreviewElement.src =
+                                e.target.result;
+
+                            editImagePreviewContainerElement.classList.remove('hidden');
+                        };
+
+                    reader.readAsDataURL(file);
+                }
             );
         }
 

@@ -23,9 +23,21 @@ class CustomerController extends Controller
             ->latest()
             ->get();
 
+        $reviewedItemIds = Review::where(
+            'user_id',
+            auth()->id()
+        )
+        ->pluck(
+            'order_item_id'
+        )
+        ->toArray();
+
         return view(
             'customer.index',
-            compact('orders')
+            compact(
+                'orders',
+                'reviewedItemIds'
+            )
         );
     }
 

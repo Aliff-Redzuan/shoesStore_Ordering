@@ -25,8 +25,6 @@
 </head>
 
 <body class="bg-gray-50 min-h-screen font-sans antialiased text-gray-900 flex flex-col md:flex-row">
-
-```
 <aside class="w-full md:w-64 bg-white border-r border-gray-200 flex-shrink-0 flex flex-col justify-between min-h-screen">
     <div>
         <div class="p-6 border-b border-gray-100 flex items-center gap-3 bg-brand-magenta/5">
@@ -254,11 +252,19 @@
                     </p>
 
                     <h3 class="text-2xl font-extrabold text-amber-500 mt-2">
-                        N/A
+                        @if(isset($averageRating) && $averageRating !== null)
+                            {{ number_format((float) $averageRating, 1) }}/5
+                        @else
+                            N/A
+                        @endif
                     </h3>
 
                     <p class="text-xs text-gray-500 mt-1">
-                        Review data unavailable
+                        @if(isset($averageRating) && $averageRating !== null)
+                            Based on {{ number_format((int) ($reviewCount ?? 0)) }} review{{ (($reviewCount ?? 0) == 1) ? '' : 's' }}
+                        @else
+                            No reviews available
+                        @endif
                     </p>
                 </div>
 
@@ -592,7 +598,6 @@
     }
 
 </script>
-```
 
 </body>
 </html>

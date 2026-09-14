@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Review;
 use App\Models\OrderItem;
 use App\Models\ActivityLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class StaffController extends Controller
 {
@@ -537,6 +539,9 @@ class StaffController extends Controller
                     'sizes' =>
                         $product->sizes,
 
+                    'image' =>
+                        $product->image,
+
                 ];
 
             });
@@ -574,6 +579,13 @@ class StaffController extends Controller
                 'min:0'
             ],
 
+            'image' => [
+                'nullable',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048'
+            ],
+
         ]);
 
 
@@ -607,7 +619,48 @@ class StaffController extends Controller
         }
 
 
+        /*
+        |--------------------------------------------------------------------------
+        | Update Product Image
+        |--------------------------------------------------------------------------
+        */
+
+        $oldImage = $product->image;
+        $newImageUploaded = false;
+
+        if ($request->hasFile('image')) {
+
+            $product->image =
+                $request->file('image')->store(
+                    'products',
+                    'public'
+                );
+
+            $newImageUploaded = true;
+        }
+
+
         $product->save();
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Remove Old Image After Successful Save
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $newImageUploaded
+            &&
+            !empty($oldImage)
+            &&
+            $oldImage !== $product->image
+            &&
+            Storage::disk('public')->exists($oldImage)
+        ) {
+
+            Storage::disk('public')->delete($oldImage);
+        }
 
 
         /*
@@ -648,6 +701,12 @@ class StaffController extends Controller
                         $product->price,
                         2
                     );
+            }
+
+
+            if ($newImageUploaded) {
+
+                $changes[] = 'product image updated';
             }
 
 
@@ -734,7 +793,30 @@ class StaffController extends Controller
                 'max:255'
             ],
 
+            'image' => [
+                'required',
+                'image',
+                'mimes:jpg,jpeg,png,webp',
+                'max:2048'
+            ],
+
         ]);
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | Store Product Image
+        |--------------------------------------------------------------------------
+        */
+
+        $imagePath = null;
+
+        if ($request->hasFile('image')) {
+            $imagePath = $request->file('image')->store(
+                'products',
+                'public'
+            );
+        }
 
 
         /*
@@ -762,6 +844,9 @@ class StaffController extends Controller
 
             'sizes' =>
                 $validated['sizes'] ?? null,
+
+            'image' =>
+                $imagePath,
 
         ]);
 
@@ -1188,6 +1273,43 @@ class StaffController extends Controller
 
         /*
         |--------------------------------------------------------------------------
+        | Customer Satisfaction
+        |--------------------------------------------------------------------------
+        */
+
+        $reviewQuery =
+            Review::query();
+
+        if ($dateFrom) {
+            $reviewQuery->whereDate(
+                'created_at',
+                '>=',
+                $dateFrom
+            );
+        }
+
+        if ($dateTo) {
+            $reviewQuery->whereDate(
+                'created_at',
+                '<=',
+                $dateTo
+            );
+        }
+
+        $reviewCount =
+            $reviewQuery->count();
+
+        $averageRating =
+            $reviewCount > 0
+                ? round(
+                    (float) $reviewQuery->avg('rating'),
+                    1
+                )
+                : 0;
+
+
+        /*
+        |--------------------------------------------------------------------------
         | Average Processing Time
         |--------------------------------------------------------------------------
         */
@@ -1395,6 +1517,9 @@ class StaffController extends Controller
                 'onTimeDeliveryRate',
 
                 'returnRate',
+
+                'averageRating',
+                'reviewCount',
 
                 'dateFrom',
 
